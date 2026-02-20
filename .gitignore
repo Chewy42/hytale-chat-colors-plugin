@@ -1,0 +1,15 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Server jar (not redistributed)
+libs/HytaleServer.jar
+
+# macOS
+.DS_Store
