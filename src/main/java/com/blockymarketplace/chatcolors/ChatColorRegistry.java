@@ -1,35 +1,27 @@
 package com.blockymarketplace.chatcolors;
 
-import com.hypixel.hytale.server.core.plugin.Plugin;
-import com.hypixel.hytale.server.core.plugin.PluginLogger;
-
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Stores each player's chosen chat name colour, keyed by UUID string.
- * Persisted to a simple key=value file in the plugin data folder.
+ * Persisted to a simple key=value properties file in the plugin data folder.
  */
 public final class ChatColorRegistry {
 
+    private static final Logger LOG = Logger.getLogger("ChatColors");
     private static final String FILE_NAME = "player_colors.properties";
 
-    private final Plugin plugin;
     private final Map<String, String> colorMap = new ConcurrentHashMap<>();
     private Path dataFile;
 
-    public ChatColorRegistry(Plugin plugin) {
-        this.plugin = plugin;
-    }
-
-    public void load() {
+    public void load(Path dataDirectory) {
         try {
-            Path dir = plugin.getDataFolder().toPath();
-            Files.createDirectories(dir);
-            dataFile = dir.resolve(FILE_NAME);
+            Files.createDirectories(dataDirectory);
+            dataFile = dataDirectory.resolve(FILE_NAME);
 
             if (!Files.exists(dataFile)) {
                 return;
@@ -40,9 +32,9 @@ public final class ChatColorRegistry {
                 props.load(in);
             }
             props.forEach((k, v) -> colorMap.put((String) k, (String) v));
-            PluginLogger.info("[ChatColors] Loaded " + colorMap.size() + " player colour(s).");
+            LOG.info("[ChatColors] Loaded " + colorMap.size() + " player colour(s).");
         } catch (IOException e) {
-            PluginLogger.warn("[ChatColors] Could not load player colours: " + e.getMessage());
+            LOG.warning("[ChatColors] Could not load player colours: " + e.getMessage());
         }
     }
 
@@ -55,7 +47,7 @@ public final class ChatColorRegistry {
                 props.store(out, "ChatColors — player colour preferences");
             }
         } catch (IOException e) {
-            PluginLogger.warn("[ChatColors] Could not save player colours: " + e.getMessage());
+            LOG.warning("[ChatColors] Could not save player colours: " + e.getMessage());
         }
     }
 

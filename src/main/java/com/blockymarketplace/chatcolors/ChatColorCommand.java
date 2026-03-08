@@ -1,84 +1,63 @@
 package com.blockymarketplace.chatcolors;
 
-import com.hypixel.hytale.server.core.command.Command;
-import com.hypixel.hytale.server.core.command.CommandContext;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
-/**
- * /chatcolor [color]
- *
- * Usage:
- *   /chatcolor red          — named preset
- *   /chatcolor #FF4400      — custom hex
- *   /chatcolor reset        — remove colour override
- *   /chatcolor              — show current colour and preset list
- */
-public final class ChatColorCommand extends Command {
+public final class ChatColorCommand extends AbstractPlayerCommand {
 
     private final ChatColorRegistry registry;
+    private final OptionalArg<String> colorArg;
 
     public ChatColorCommand(ChatColorRegistry registry) {
-        super("chatcolor", "cc");
+        super("chatcolor", "Set your in-game chat name colour");
         this.registry = registry;
+        this.colorArg = withOptionalArg("color", "Preset name, #hex code, or 'reset'", ArgTypes.STRING);
     }
 
     @Override
-    public void execute(CommandContext ctx) {
-        PlayerRef player = ctx.getPlayer();
-        if (player == null) {
-            ctx.send(Message.raw("This command must be run by a player."));
-            return;
-        }
+    protected void execute(
+            CommandContext context,
+            Store<EntityStore> store,
+            Ref<EntityStore> ref,
+            PlayerRef playerRef,
+            World world
+    ) {
+        String uuid = playerRef.getUuid().toString();
 
-        String uuid = player.getUuid().toString();
-
-        if (ctx.getArgs().isEmpty()) {
-            // Show current colour
+        if (!context.provided(colorArg)) {
             String current = registry.getColor(uuid);
             if (current == null) {
-                ctx.send(prefix().insert(Message.raw(" You have no custom chat colour set.")));
+                context.sendMessage(Message.raw("[ChatColors] No custom colour set."));
             } else {
-                ctx.send(prefix()
-                    .insert(Message.raw(" Your current colour: "))
-                    .insert(Message.raw(current).color(current).bold(true)));
+                context.sendMessage(Message.raw("[ChatColors] Current colour: " + current));
             }
-            ctx.send(Message.raw("Presets: " + ChatColors.presetList())
-                .color("#AAAAAA"));
-            ctx.send(Message.raw("Usage: /chatcolor <preset|#hex>")
-                .color("#AAAAAA"));
+            context.sendMessage(Message.raw("[ChatColors] Presets: " + ChatColors.presetList()));
+            context.sendMessage(Message.raw("[ChatColors] Usage: /chatcolor <preset|#hex|reset>"));
             return;
         }
 
-        String input = ctx.getArgs().get(0);
-        String hex;
+        String arg = context.get(colorArg);
+
+        if (arg.equalsIgnoreCase("reset")) {
+            registry.setColor(uuid, null);
+            context.sendMessage(Message.raw("[ChatColors] Chat colour reset to default."));
+            return;
+        }
+
         try {
-            hex = ChatColors.resolve(input);
+            String hex = ChatColors.resolve(arg);
+            registry.setColor(uuid, hex);
+            context.sendMessage(Message.raw("[ChatColors] Chat colour set to " + hex + "."));
         } catch (IllegalArgumentException e) {
-            ctx.send(error(e.getMessage()));
-            return;
+            context.sendMessage(Message.raw("[ChatColors] Error: " + e.getMessage()));
         }
-
-        registry.setColor(uuid, hex);
-
-        if (hex == null) {
-            ctx.send(prefix().insert(Message.raw(" Chat colour reset to default.")));
-        } else {
-            ctx.send(prefix()
-                .insert(Message.raw(" Chat colour set to "))
-                .insert(Message.raw(hex).color(hex).bold(true))
-                .insert(Message.raw(".")));
-        }
-    }
-
-    private static Message prefix() {
-        return Message.raw("[ChatColors]").color("#19B36B").bold(true);
-    }
-
-    private static Message error(String text) {
-        return Message.empty()
-            .insert(prefix())
-            .insert(Message.raw(" Error: ").color("#E03A3E").bold(true))
-            .insert(Message.raw(text));
     }
 }

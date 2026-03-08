@@ -1,0 +1,8 @@
+{
+  "Group": "com.blockymarketplace",
+  "Name": "ChatColors",
+  "Version": "1.0.0",
+  "Main": "com.blockymarketplace.chatcolors.ChatColorsPlugin",
+  "ServerVersion": "*",
+  "Description": "Lets players customize chat name colors."
+}
