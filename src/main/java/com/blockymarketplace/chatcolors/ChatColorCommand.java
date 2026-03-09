@@ -19,6 +19,7 @@ public final class ChatColorCommand extends AbstractPlayerCommand {
     public ChatColorCommand(ChatColorRegistry registry) {
         super("chatcolor", "Set your in-game chat name colour");
         this.registry = registry;
+        addAliases("cc");
         this.colorArg = withOptionalArg("color", "Preset name, #hex code, or 'reset'", ArgTypes.STRING);
     }
 
