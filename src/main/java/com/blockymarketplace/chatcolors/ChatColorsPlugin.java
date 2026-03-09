@@ -1,49 +1,31 @@
 package com.blockymarketplace.chatcolors;
 
-import com.hypixel.hytale.server.core.plugin.Plugin;
-import com.hypixel.hytale.server.core.plugin.PluginLogger;
-import com.hypixel.hytale.server.core.command.CommandManager;
+import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import java.util.logging.Level;
 
-/**
- * ChatColors — Hytale server plugin.
- *
- * Lets players personalise the colour of their chat name using hex codes
- * or a palette of preset colours. Colours are persisted per-player across
- * sessions via the built-in config system.
- */
-public final class ChatColorsPlugin extends Plugin {
+public final class ChatColorsPlugin extends JavaPlugin {
 
-    private static ChatColorsPlugin instance;
     private ChatColorRegistry registry;
 
-    @Override
-    public void onEnable() {
-        instance = this;
-        PluginLogger.info("[ChatColors] Enabling ChatColors v" + getDescription().getVersion());
-
-        // Load player colour preferences
-        registry = new ChatColorRegistry(this);
-        registry.load();
-
-        // Register the /chatcolor command
-        CommandManager.register(new ChatColorCommand(registry));
-
-        PluginLogger.info("[ChatColors] Ready. Use /chatcolor <hex|preset> to set your chat colour.");
+    public ChatColorsPlugin(JavaPluginInit init) {
+        super(init);
     }
 
     @Override
-    public void onDisable() {
-        if (registry != null) {
-            registry.save();
-        }
-        PluginLogger.info("[ChatColors] Disabled.");
+    protected void setup() {
+        registry = new ChatColorRegistry();
     }
 
-    public static ChatColorsPlugin getInstance() {
-        return instance;
+    @Override
+    protected void start() {
+        registry.load(getDataDirectory());
+        getCommandRegistry().registerCommand(new ChatColorCommand(registry));
+        getLogger().at(Level.INFO).log("[ChatColors] Enabled v%s — /chatcolor to set your name colour", getManifest().getVersion());
     }
 
-    public ChatColorRegistry getRegistry() {
-        return registry;
+    @Override
+    protected void shutdown() {
+        if (registry != null) registry.save();
     }
 }

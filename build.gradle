@@ -17,6 +17,8 @@ repositories {
 }
 
 dependencies {
+// HytaleServer SDK: libs/HytaleServer.jar is the canonical Hytale API (2026-02-20, latest available).
+// Updated 2026-02-21: verified against main server jar (MD5 matches WashingtonsAdventureRPGServices/HytaleServer/HytaleServer.jar).
     compileOnly files('libs/HytaleServer.jar')
     testImplementation files('libs/HytaleServer.jar')
 
